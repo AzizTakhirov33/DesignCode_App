@@ -8,12 +8,13 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State var screenSize: CGSize = CGSize(width: 393, height: 852)
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             title
             VStack(spacing: 250) {
                 ForEach(cards) { card in
-                    CardView(card: card)
+                    CardView(card: card, screenSize: $screenSize)
                         .scrollTransition { content, phase in
                             content.scaleEffect(phase.isIdentity ? 1 : 0.8)
                                 .rotationEffect(.degrees(phase.isIdentity ? 0 : -30))
@@ -27,7 +28,20 @@ struct ContentView: View {
             .scrollTargetLayout()
             .padding(.bottom, 100)
         }
-        .scrollTargetBehavior(.paging)
+        .scrollTargetBehavior(.viewAligned)
+        .overlay(geometryReader)
+    }
+    
+    var geometryReader: some View {
+        GeometryReader { proxy in
+            Color.clear
+                .onAppear {
+                    screenSize = proxy.size
+                }
+                .onChange(of: proxy.size) { oldValue, newValue in
+                    screenSize = newValue
+                }
+        }
     }
     
     var title: some View {
@@ -38,6 +52,7 @@ struct ContentView: View {
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, -20)
         .padding(20)
     }
 }
